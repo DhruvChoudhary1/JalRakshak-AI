@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.env
+.env*
+venv/
+ENV/
+*.egg-info/
+*.egg
+*.log
+*.sqlite3
+*.db
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+# Static/Generated
+static/data/*.json
+static/img/*.ico
+
+# Docs
+*.docx
+
+# Other
+*.bak
+*.tmp
+*.swp
+
+# Ignore test cache
+*.pytest_cache/
+
+# Ignore secrets
+secrets.*

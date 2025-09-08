@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI INGRES Groundwater Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌊 AI INGRES Groundwater Chatbot</h1>
+            <p>Real-time groundwater monitoring and analysis powered by INGRES data</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Chatbot Section -->
+            <div class="chat-section">
+                <div class="chat-header">
+                    <div class="groundwater-ui">
+                        <h2>💬 Ask about Groundwater</h2>
+                        <div class="groundwater-status">🟢 Connected to INGRES</div>
+                        <div class="groundwater-actions">
+                            <button id="locationBtn" class="control-btn" title="Auto-detect your location">
+                                📍 <span id="locationText">Detect Location</span>
+                            </button>
+                            <button id="voiceBtn" class="control-btn" title="Voice input">
+                                🎤 <span id="voiceText">Voice</span>
+                            </button>
+                            <select id="languageSelect" class="control-select" title="Select language">
+                                <option value="en">🇬🇧 English</option>
+                                <option value="hi">🇮🇳 हिंदी</option>
+                                <option value="ta">🇮🇳 தமிழ்</option>
+                                <option value="te">🇮🇳 తెలుగు</option>
+                                <option value="bn">🇮🇳 বাংলা</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-header">
+                    <div class="chat-title">
+                        <span class="status-indicator online"></span>
+                        <h3>INGRES AI Assistant</h3>
+                        <span class="chat-subtitle">Groundwater Management Expert</span>
+                    </div>
+                    <div class="chat-actions">
+                        <button id="helpBtn" class="action-btn" title="Help & Tutorial">❓</button>
+                        <button id="clearChatBtn" class="action-btn" title="Clear Chat">🗑️</button>
+                    </div>
+                </div>
+                
+                <div class="chat-messages-wrapper">
+                    <div class="chat-container" id="chatContainer">
+                        <div class="message bot-message welcome-message">
+                            <div class="message-avatar">🤖</div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="sender-name">INGRES AI</span>
+                                    <span class="message-time" id="welcomeTime"></span>
+                                </div>
+                                <p>👋 Welcome! I'm your AI-powered groundwater management assistant. I can help you with:</p>
+                                <div class="feature-grid">
+                                    <div class="feature-item">📊 Real-time water levels</div>
+                                    <div class="feature-item">🔮 Crisis predictions</div>
+                                    <div class="feature-item">🗺️ Interactive maps</div>
+                                    <div class="feature-item">💧 Conservation tips</div>
+                                    <div class="feature-item">📝 Quality reports</div>
+                                    <div class="feature-item">🎯 Trend analysis</div>
+                                </div>
+                                <p>🚀 <strong>Try the quick actions below or ask me anything!</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="typingIndicator" class="typing-indicator" style="display: none;">
+                    <div class="message-avatar">🤖</div>
+                    <div class="typing-content">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span class="typing-text">AI is analyzing...</span>
+                    </div>
+                </div>
+                
+                <div class="quick-actions" id="quickActions">
+                    <button class="quick-btn" data-query="What is the current groundwater level in Chennai?">📊 Water Levels</button>
+                    <button class="quick-btn" data-query="Predict water crisis for my area">🔮 Crisis Prediction</button>
+                    <button class="quick-btn" data-query="Show me water conservation tips">💧 Conservation Tips</button>
+                    <button class="quick-btn" data-query="How can I report water quality issues?">📝 Report Issues</button>
+                </div>
+                
+                <div class="chat-input-container">
+                    <input type="text" id="chatInput" placeholder="Ask about groundwater levels, crisis prediction, conservation tips..." />
+                    <button id="sendButton">
+                        <span class="send-icon">📤</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visualization Section -->
+            <div class="visualization-section">
+                <div class="viz-header">
+                    <h2>📊 Groundwater Dashboard</h2>
+                    <button id="refreshData">Refresh Data</button>
+                    <button id="gameBtn" class="game-btn">🎮 Water Game</button>
+                    <button id="crisisBtn" class="crisis-btn">🔮 Crisis Predictor</button>
+                    <button id="mapBtn" class="map-btn">🗺️ Interactive Map</button>
+                    <button id="reportsBtn" class="reports-btn">👥 Community Reports</button>
+                    <button id="analyticsBtn" class="analytics-btn">📊 Predictive Analytics</button>
+                </div>
+                
+                <!-- Water Conservation Game -->
+                <div id="waterGame" class="water-game" style="display: none;">
+                    <div class="game-header">
+                        <h3>🎮 Water Conservation Challenge</h3>
+                        <div class="game-stats">
+                            <span>💧 Water: <span id="waterLevel">100</span>L</span>
+                            <span>🏆 Score: <span id="gameScore">0</span></span>
+                            <span>⏱️ Time: <span id="gameTime">60</span>s</span>
+                        </div>
+                    </div>
+                    <canvas id="gameCanvas" width="400" height="300"></canvas>
+                    <div class="game-controls">
+                        <button id="startGame">Start Game</button>
+                        <button id="pauseGame">Pause</button>
+                        <button id="closeGame">Close Game</button>
+                    </div>
+                    <div class="game-instructions">
+                        <p>🎯 <strong>Goal:</strong> Collect water drops, avoid waste! Click drops to save water.</p>
+                    </div>
+                </div>
+                
+                <!-- Crisis Predictor Panel -->
+                <div id="crisisPanel" class="crisis-panel" style="display: none;">
+                    <div class="crisis-header">
+                        <h3>🔮 AI Water Crisis Predictor</h3>
+                        <button id="closeCrisis">×</button>
+                    </div>
+                    <div class="crisis-content">
+                        <div class="crisis-controls">
+                            <select id="crisisDistrict">
+                                <option value="">Select District</option>
+                                <option value="Mumbai">Mumbai</option>
+                                <option value="Pune">Pune</option>
+                                <option value="Bangalore">Bangalore</option>
+                                <option value="Chennai">Chennai</option>
+                                <option value="Delhi">Delhi</option>
+                            </select>
+                            <button id="predictBtn">Predict Crisis</button>
+                            <button id="alertsBtn">View All Alerts</button>
+                        </div>
+                        <div id="crisisResults" class="crisis-results"></div>
+                    </div>
+                </div>
+                </div>
+
+                <!-- Interactive Map Panel -->
+                <div id="mapPanel" class="feature-panel" style="display: none;">
+                    <div class="panel-header">
+                        <h3>🗺️ Interactive Water Map</h3>
+                        <button class="close-btn" onclick="closePanel('mapPanel')">×</button>
+                    </div>
+                    <div class="panel-content">
+                        <div class="map-controls">
+                            <input type="text" id="mapSearch" placeholder="Search location..." onkeypress="if(event.key==='Enter') searchLocation()">
+                            <button onclick="searchLocation()">🔍 Search</button>
+                            <div class="map-layers">
+                                <label><input type="checkbox" id="layerLevels" checked onchange="toggleMapLayer('groundwater_levels', this.checked)"> 💧 Water Levels</label>
+                                <label><input type="checkbox" id="layerQuality" checked onchange="toggleMapLayer('quality_zones', this.checked)"> 🔬 Quality Zones</label>
+                                <label><input type="checkbox" id="layerWells" checked onchange="toggleMapLayer('monitoring_wells', this.checked)"> 🏗️ Wells</label>
+                                <label><input type="checkbox" id="layerAlerts" checked onchange="toggleMapLayer('crisis_alerts', this.checked)"> ⚠️ Alerts</label>
+                            </div>
+                        </div>
+                        <div id="mapContainer">
+                            <div id="interactiveMap" style="height: 400px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative;">
+                                <div style="text-align: center;">
+                                    <div style="font-size: 48px; margin-bottom: 10px;">🗺️</div>
+                                    <p style="margin: 0; color: #1976d2; font-weight: bold;">Interactive Map</p>
+                                    <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Groundwater monitoring points visualization</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="mapInfo" class="map-info"></div>
+                    </div>
+                </div>
+
+                <!-- Community Reports Panel -->
+                <div id="reportsPanel" class="feature-panel" style="display: none;">
+                    <div class="panel-header">
+                        <h3>👥 Community Reports</h3>
+                        <button class="close-btn" onclick="closePanel('reportsPanel')">×</button>
+                    </div>
+                    <div class="panel-content">
+                        <div class="reports-tabs">
+                            <button class="tab-btn active" onclick="showReportsTab('submit')">📝 Submit Report</button>
+                            <button class="tab-btn" onclick="showReportsTab('view')">👀 View Reports</button>
+                            <button class="tab-btn" onclick="showReportsTab('stats')">📊 Statistics</button>
+                        </div>
+                        
+                        <!-- Submit Report Tab -->
+                        <div id="submitTab" class="tab-content">
+                            <form id="reportForm" onsubmit="submitReport(event)">
+                                <div class="form-group">
+                                    <label>📍 Location:</label>
+                                    <div style="display: flex; gap: 10px;">
+                                        <input type="text" id="reportLocation" required placeholder="Enter location">
+                                        <button type="button" onclick="getCurrentLocation()" class="location-btn">📍 Current</button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>📂 Category:</label>
+                                    <select id="reportCategory" required>
+                                        <option value="">Select category</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>💧 Water Level (meters):</label>
+                                    <input type="number" id="reportWaterLevel" step="0.1" placeholder="Optional">
+                                </div>
+                                <div class="form-group">
+                                    <label>⭐ Quality Rating:</label>
+                                    <select id="reportQuality">
+                                        <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                                        <option value="4">⭐⭐⭐⭐ Good</option>
+                                        <option value="3" selected>⭐⭐⭐ Average</option>
+                                        <option value="2">⭐⭐ Poor</option>
+                                        <option value="1">⭐ Very Poor</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>📝 Description:</label>
+                                    <textarea id="reportDescription" required placeholder="Describe the water situation..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>📞 Contact (optional):</label>
+                                    <input type="text" id="reportContact" placeholder="Phone or email">
+                                </div>
+                                <button type="submit" class="submit-btn">📤 Submit Report</button>
+                            </form>
+                        </div>
+                        
+                        <!-- View Reports Tab -->
+                        <div id="viewTab" class="tab-content" style="display: none;">
+                            <div class="reports-filter">
+                                <input type="text" id="reportsLocationFilter" placeholder="Filter by location...">
+                                <button onclick="filterReports()">🔍 Filter</button>
+                            </div>
+                            <div id="reportsList" class="reports-list"></div>
+                        </div>
+                        
+                        <!-- Statistics Tab -->
+                        <div id="statsTab" class="tab-content" style="display: none;">
+                            <div id="communityStats" class="community-stats"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Help & Onboarding Modal -->
+                <div id="helpModal" class="help-modal" style="display: none;">
+                    <div class="help-content">
+                        <div class="help-header">
+                            <h3>🚀 Welcome to INGRES AI Assistant</h3>
+                            <button id="closeHelp">×</button>
+                        </div>
+                        <div class="help-body">
+                            <div class="help-section active" id="helpIntro">
+                                <h4>🌊 Your Smart Water Management Companion</h4>
+                                <p>INGRES AI is your comprehensive assistant for groundwater management, crisis prediction, and water conservation.</p>
+                                <div class="help-features">
+                                    <div class="help-feature">
+                                        <div class="feature-icon">💬</div>
+                                        <div class="feature-text">
+                                            <h5>Smart Chat</h5>
+                                            <p>Ask questions in natural language about water levels, quality, and trends</p>
+                                        </div>
+                                    </div>
+                                    <div class="help-feature">
+                                        <div class="feature-icon">🎤</div>
+                                        <div class="feature-text">
+                                            <h5>Voice Interface</h5>
+                                            <p>Speak in 22+ Indian languages for hands-free interaction</p>
+                                        </div>
+                                    </div>
+                                    <div class="help-feature">
+                                        <div class="feature-icon">🔮</div>
+                                        <div class="feature-text">
+                                            <h5>Crisis Prediction</h5>
+                                            <p>AI-powered predictions for water crises 30-60 days in advance</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="help-section" id="helpFeatures">
+                                <h4>🛠️ Key Features</h4>
+                                <div class="feature-list">
+                                    <div class="feature-item-help">
+                                        <span class="feature-emoji">📊</span>
+                                        <strong>Real-time Data:</strong> Live groundwater levels from INGRES database
+                                    </div>
+                                    <div class="feature-item-help">
+                                        <span class="feature-emoji">🗺️</span>
+                                        <strong>Interactive Maps:</strong> Visualize water data geographically
+                                    </div>
+                                    <div class="feature-item-help">
+                                        <span class="feature-emoji">👥</span>
+                                        <strong>Community Reports:</strong> Crowdsourced water quality data
+                                    </div>
+                                    <div class="feature-item-help">
+                                        <span class="feature-emoji">🎮</span>
+                                        <strong>Water Game:</strong> Learn conservation through interactive gameplay
+                                    </div>
+                                    <div class="feature-item-help">
+                                        <span class="feature-emoji">📈</span>
+                                        <strong>Analytics:</strong> Trend analysis and predictive insights
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="help-section" id="helpTips">
+                                <h4>💡 Quick Tips</h4>
+                                <div class="tips-grid">
+                                    <div class="tip-card">
+                                        <h5>🗣️ Natural Language</h5>
+                                        <p>Ask questions naturally: "What's the water situation in Delhi?" or "Show me crisis predictions"</p>
+                                    </div>
+                                    <div class="tip-card">
+                                        <h5>🎯 Quick Actions</h5>
+                                        <p>Use the quick action buttons below the chat for common queries</p>
+                                    </div>
+                                    <div class="tip-card">
+                                        <h5>🌐 Multi-language</h5>
+                                        <p>Switch languages anytime using the language selector</p>
+                                    </div>
+                                    <div class="tip-card">
+                                        <h5>🔊 Voice Commands</h5>
+                                        <p>Click the microphone button and speak your questions</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="help-navigation">
+                            <button class="help-nav-btn active" data-section="helpIntro">Introduction</button>
+                            <button class="help-nav-btn" data-section="helpFeatures">Features</button>
+                            <button class="help-nav-btn" data-section="helpTips">Tips</button>
+                        </div>
+                        <div class="help-footer">
+                            <label class="help-checkbox">
+                                <input type="checkbox" id="dontShowAgain">
+                                <span>Don't show this again</span>
+                            </label>
+                            <button id="startTour" class="start-tour-btn">🚀 Get Started</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Predictive Analytics Panel -->
+                <div id="analyticsPanel" class="feature-panel" style="display: none;">
+                    <div class="panel-header">
+                        <h3>📊 Predictive Analytics</h3>
+                        <button class="close-btn" onclick="closePanel('analyticsPanel')">×</button>
+                    </div>
+                    <div class="panel-content">
+                        <div class="analytics-tabs">
+                            <button class="tab-btn active" onclick="showAnalyticsTab('predict')">🔮 Predictions</button>
+                            <button class="tab-btn" onclick="showAnalyticsTab('trends')">📈 Trends</button>
+                            <button class="tab-btn" onclick="showAnalyticsTab('compare')">⚖️ Compare</button>
+                        </div>
+                        
+                        <!-- Prediction Tab -->
+                        <div id="predictTab" class="tab-content">
+                            <div class="prediction-controls">
+                                <select id="predictDistrict">
+                                    <option value="">Select District</option>
+                                </select>
+                                <input type="number" id="currentLevel" placeholder="Current water level" step="0.1">
+                                <select id="predictionHorizon">
+                                    <option value="short_term">📅 30 Days</option>
+                                    <option value="medium_term" selected>📅 90 Days</option>
+                                    <option value="long_term">📅 1 Year</option>
+                                </select>
+                                <button onclick="predictWaterLevels()">🔮 Predict</button>
+                            </div>
+                            <div id="predictionResults" class="prediction-results"></div>
+                        </div>
+                        
+                        <!-- Trends Tab -->
+                        <div id="trendsTab" class="tab-content" style="display: none;">
+                            <div class="trends-controls">
+                                <select id="trendsDistrict">
+                                    <option value="">Select District</option>
+                                </select>
+                                <button onclick="analyzeTrends()">📈 Analyze Trends</button>
+                            </div>
+                            <div id="trendsResults" class="trends-results"></div>
+                        </div>
+                        
+                        <!-- Compare Tab -->
+                        <div id="compareTab" class="tab-content" style="display: none;">
+                            <button onclick="compareDistricts()" class="compare-btn">⚖️ Compare All Districts</button>
+                            <div id="comparisonResults" class="comparison-results"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="charts-container">
+                    <div class="chart-wrapper">
+                        <h3>Water Levels by District</h3>
+                        <canvas id="waterLevelChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-wrapper">
+                        <h3>Water Quality Index</h3>
+                        <canvas id="qualityChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="district-cards" id="districtCards">
+                    <!-- District cards will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Citations Panel -->
+        <div class="citations-panel" id="citationsPanel">
+            <h3>📚 INGRES Data Sources</h3>
+            <div id="citationsList">
+                <!-- Citations will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/new_features.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/enhanced-chat.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/help-system.js') }}"></script>
+</body>
+</html>
