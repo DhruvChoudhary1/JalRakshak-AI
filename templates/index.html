@@ -438,5 +438,33 @@
     <script src="{{ url_for('static', filename='js/new_features.js') }}"></script>
     <script src="{{ url_for('static', filename='js/enhanced-chat.js') }}"></script>
     <script src="{{ url_for('static', filename='js/help-system.js') }}"></script>
+</div>
+
+    <!-- Google Maps API integration -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}"></script>
+    <script>
+    // Initialize Google Map when mapPanel is shown
+    function initMap() {
+        const mapDiv = document.getElementById('interactiveMap');
+        if (!mapDiv) return;
+        // Prevent re-initialization
+        if (mapDiv.dataset.mapInitialized) return;
+        const map = new google.maps.Map(mapDiv, {
+            center: { lat: 20.5937, lng: 78.9629 }, // Center on India
+            zoom: 5,
+            mapTypeId: 'roadmap',
+        });
+        mapDiv.dataset.mapInitialized = 'true';
+    }
+    // Show mapPanel and initialize map
+    document.addEventListener('DOMContentLoaded', function() {
+        const mapBtn = document.getElementById('mapBtn');
+        if (mapBtn) {
+            mapBtn.addEventListener('click', function() {
+                setTimeout(initMap, 300); // Wait for panel to be visible
+            });
+        }
+    });
+    </script>
 </body>
 </html>

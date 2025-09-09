@@ -139,7 +139,7 @@ CHATBOT_RESPONSES = {
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', GOOGLE_MAPS_API_KEY=Config.GOOGLE_MAPS_API_KEY)
 
 @app.route('/test')
 def test_chat():
