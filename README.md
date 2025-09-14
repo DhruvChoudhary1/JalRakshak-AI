@@ -1,26 +1,27 @@
 # AI INGRES Groundwater Chatbot - Prototype
 
 ## Overview
-A chatbot prototype that integrates with INGRES (India-WRIS Geospatial Repository) for groundwater monitoring and Q&A with visualization capabilities.
+A chatbot prototype that integrates with INGRES (India-WRIS Geospatial Repository) for groundwater monitoring and Q&A with real-time data scraping and visualization capabilities.
 
 ## Features
 - Interactive chatbot for groundwater queries
-- District-wise groundwater status visualization
-- INGRES dataset integration with inline citations
-- Real-time groundwater level monitoring
+- State-wise groundwater status using live INGRES data
+- Automated data scraping and CSV updates via Selenium
+- Real-time groundwater level and extraction monitoring
 - Water quality analysis and recommendations
 
 ## Tech Stack
 - Frontend: HTML, CSS, JavaScript
 - Backend: Python Flask
+- Data Scraping: Selenium, pandas
 - Data Visualization: Chart.js
-- Mock INGRES API integration
 
 ## Setup
 
-### Quick Start (Demo Mode)
+### Quick Start
 ```bash
 pip install -r requirements.txt
+# Download and install ChromeDriver, add it to your PATH
 python app.py
 # Open browser to http://localhost:5000
 ```
@@ -33,7 +34,6 @@ python app.py
 2. **Add your API keys to `.env`:**
    ```bash
    # Required for full functionality
-   INGRES_API_KEY=your_ingres_api_key
    OPENAI_API_KEY=your_openai_api_key
    GOOGLE_MAPS_API_KEY=your_google_maps_key
    ```
@@ -50,15 +50,21 @@ python app.py
 
 ## Project Structure
 ```
-├── app.py                 # Flask backend
-├── requirements.txt       # Python dependencies
+├── app.py                        # Flask backend (runs INGRES scraper in background)
+├── ingres.py                     # Selenium scraper for INGRES groundwater data
+├── requirements.txt              # Python dependencies
 ├── static/
 │   ├── css/
-│   │   └── style.css     # Styling
+│   │   └── style.css             # Styling
 │   ├── js/
-│   │   └── script.js     # Frontend logic
+│   │   └── script.js             # Frontend logic
 │   └── data/
-│       └── groundwater_data.json  # Mock INGRES data
+│       └── state_groundwater.csv # Live INGRES data (auto-updated)
 └── templates/
-    └── index.html        # Main interface
+    └── index.html                # Main interface
 ```
+
+## Notes
+- Ensure ChromeDriver is installed and available in your system PATH for Selenium scraping.
+- The CSV file (`state_groundwater.csv`) is automatically updated every second while the app is running.
+- For custom queries or chatbot integration, use the `/api/chat` and `/api/state-groundwater` endpoints.
