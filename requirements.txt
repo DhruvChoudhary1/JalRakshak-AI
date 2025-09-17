@@ -3,6 +3,7 @@ Flask>=2.3.0
 Flask-CORS>=4.0.0
 requests>=2.31.0
 python-dotenv>=1.0.0
+spacy>=3.5.0
 
 # Data processing
 pandas>=2.0.0

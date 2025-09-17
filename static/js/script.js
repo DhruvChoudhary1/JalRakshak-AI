@@ -747,19 +747,19 @@ function initializeCrisisPredictor() {
     const closeCrisisBtn = document.getElementById('closeCrisis');
     const predictBtn = document.getElementById('predictBtn');
     const alertsBtn = document.getElementById('alertsBtn');
-    
+
     if (crisisBtn) {
         crisisBtn.addEventListener('click', toggleCrisisPredictor);
     }
-    
+
     if (closeCrisisBtn) {
         closeCrisisBtn.addEventListener('click', closeCrisisPredictor);
     }
-    
+
     if (predictBtn) {
         predictBtn.addEventListener('click', predictCrisis);
     }
-    
+
     if (alertsBtn) {
         alertsBtn.addEventListener('click', viewCrisisAlerts);
     }
@@ -767,11 +767,7 @@ function initializeCrisisPredictor() {
 
 function toggleCrisisPredictor() {
     const crisisPanel = document.getElementById('crisisPanel');
-    if (crisisPanel.style.display === 'none') {
-        crisisPanel.style.display = 'block';
-    } else {
-        crisisPanel.style.display = 'none';
-    }
+    crisisPanel.style.display = (crisisPanel.style.display === 'none') ? 'block' : 'none';
 }
 
 function closeCrisisPredictor() {
@@ -784,15 +780,29 @@ async function predictCrisis() {
         alert('Please select a district');
         return;
     }
-    
+
     try {
-        const response = await fetch(`/api/crisis/predict/${district}`);
+        // Use POST to /api/crisis/state for state-wise prediction
+        const response = await fetch('/api/crisis/state', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ state: district })
+        });
         const data = await response.json();
-        
-        if (data.success) {
-            displayCrisisResults(data.prediction);
-        } else {
+
+        if (data.error) {
             alert('Error: ' + data.error);
+        } else {
+            // Adapt to displayCrisisResults format
+            displayCrisisResults({
+                district: data.location,
+                prediction: {
+                    severity: data.severity,
+                    days_to_crisis: data.days_to_crisis,
+                    probability: data.extraction_to_resource_ratio // Use ratio as probability
+                },
+                recommendations: data.recommendations
+            });
         }
     } catch (error) {
         console.error('Error predicting crisis:', error);
@@ -802,13 +812,14 @@ async function predictCrisis() {
 
 async function viewCrisisAlerts() {
     try {
+        // Example: fetch all states and show critical/high alerts
         const response = await fetch('/api/crisis/alerts');
         const data = await response.json();
-        
-        if (data.success) {
-            displayCrisisAlerts(data.alerts);
-        } else {
+
+        if (data.error) {
             alert('Error: ' + data.error);
+        } else {
+            displayCrisisAlerts(data.alerts);
         }
     } catch (error) {
         console.error('Error loading alerts:', error);
@@ -818,11 +829,11 @@ async function viewCrisisAlerts() {
 
 function displayCrisisResults(prediction) {
     const resultsDiv = document.getElementById('crisisResults');
-    
+
     const severityLevel = prediction.prediction.severity.toLowerCase();
     const severityIcon = getSeverityIcon(severityLevel);
     const severityColor = getSeverityColor(severityLevel);
-    
+
     resultsDiv.innerHTML = `
         <div class="prediction-header">
             <h4>${severityIcon} Crisis Prediction for ${prediction.district}</h4>
@@ -831,7 +842,6 @@ function displayCrisisResults(prediction) {
                 <button id="stopAudio" class="audio-btn" title="Stop Audio" style="display: none;">⏹️</button>
             </div>
         </div>
-        
         <div class="prediction-cards">
             <div class="severity-card ${severityLevel}" style="border-left-color: ${severityColor};">
                 <div class="card-icon">${severityIcon}</div>
@@ -840,7 +850,6 @@ function displayCrisisResults(prediction) {
                     <p class="severity-value">${prediction.prediction.severity}</p>
                 </div>
             </div>
-            
             <div class="timeline-card">
                 <div class="card-icon">⏰</div>
                 <div class="card-content">
@@ -848,7 +857,6 @@ function displayCrisisResults(prediction) {
                     <p class="timeline-value">${prediction.prediction.days_to_crisis}</p>
                 </div>
             </div>
-            
             <div class="probability-card">
                 <div class="card-icon">📊</div>
                 <div class="card-content">
@@ -857,7 +865,6 @@ function displayCrisisResults(prediction) {
                 </div>
             </div>
         </div>
-        
         <div class="recommendations-section">
             <h5>💡 Recommendations:</h5>
             <div class="recommendations-grid">
@@ -870,13 +877,11 @@ function displayCrisisResults(prediction) {
             </div>
         </div>
     `;
-    
-    // Auto-play audio announcement
+
     setTimeout(() => {
         playPredictionAudio(prediction);
     }, 500);
-    
-    // Add event listeners for audio controls
+
     document.getElementById('playAudio').addEventListener('click', () => playPredictionAudio(prediction));
     document.getElementById('stopAudio').addEventListener('click', stopPredictionAudio);
 }
@@ -884,7 +889,7 @@ function displayCrisisResults(prediction) {
 function getSeverityIcon(severity) {
     const icons = {
         'low': '🟢',
-        'moderate': '🟡', 
+        'moderate': '🟡',
         'high': '🟠',
         'critical': '🔴'
     };
@@ -895,7 +900,7 @@ function getSeverityColor(severity) {
     const colors = {
         'low': '#10b981',
         'moderate': '#f59e0b',
-        'high': '#f97316', 
+        'high': '#f97316',
         'critical': '#ef4444'
     };
     return colors[severity] || '#6b7280';
@@ -904,19 +909,18 @@ function getSeverityColor(severity) {
 let currentAudio = null;
 
 function playPredictionAudio(prediction) {
-    // Stop any existing audio
     stopPredictionAudio();
-    
+
     const severity = prediction.prediction.severity;
     const district = prediction.district;
     const days = prediction.prediction.days_to_crisis;
     const probability = (prediction.prediction.probability * 100).toFixed(1);
-    
+
     let message = `Water crisis prediction for ${district}. `;
     message += `Severity level: ${severity}. `;
     message += `Estimated ${days} days to potential crisis. `;
     message += `Probability: ${probability} percent. `;
-    
+
     if (severity.toLowerCase() === 'critical') {
         message += 'Immediate action required. ';
     } else if (severity.toLowerCase() === 'high') {
@@ -926,25 +930,25 @@ function playPredictionAudio(prediction) {
     } else {
         message += 'Continue current practices. ';
     }
-    
+
     message += 'Check recommendations for detailed guidance.';
-    
+
     if ('speechSynthesis' in window) {
         currentAudio = new SpeechSynthesisUtterance(message);
         currentAudio.rate = 0.9;
         currentAudio.pitch = 1;
         currentAudio.volume = 0.8;
-        
+
         currentAudio.onstart = () => {
             document.getElementById('playAudio').style.display = 'none';
             document.getElementById('stopAudio').style.display = 'inline-block';
         };
-        
+
         currentAudio.onend = () => {
             document.getElementById('playAudio').style.display = 'inline-block';
             document.getElementById('stopAudio').style.display = 'none';
         };
-        
+
         speechSynthesis.speak(currentAudio);
     }
 }
@@ -959,8 +963,8 @@ function stopPredictionAudio() {
 
 function displayCrisisAlerts(alerts) {
     const resultsDiv = document.getElementById('crisisResults');
-    
-    if (alerts.length === 0) {
+
+    if (!alerts || alerts.length === 0) {
         resultsDiv.innerHTML = `
             <div class="no-alerts">
                 <div class="no-alerts-icon">✅</div>
@@ -970,7 +974,7 @@ function displayCrisisAlerts(alerts) {
         `;
         return;
     }
-    
+
     resultsDiv.innerHTML = `
         <div class="alerts-header">
             <h4>🚨 Crisis Alerts (${alerts.length})</h4>
@@ -979,7 +983,6 @@ function displayCrisisAlerts(alerts) {
                 <button id="stopAlertsAudio" class="audio-btn" title="Stop Audio" style="display: none;">⏹️</button>
             </div>
         </div>
-        
         <div class="alerts-grid">
             ${alerts.map((alert, index) => `
                 <div class="alert-card ${alert.severity.toLowerCase()}">
@@ -998,51 +1001,49 @@ function displayCrisisAlerts(alerts) {
                         </div>
                         <div class="alert-stat">
                             <span class="stat-label">Water Level</span>
-                            <span class="stat-value">${alert.current_water_level}m</span>
+                            <span class="stat-value">${alert.current_water_level ? alert.current_water_level + 'm' : 'N/A'}</span>
                         </div>
                     </div>
                 </div>
             `).join('')}
         </div>
     `;
-    
-    // Auto-play alerts audio
+
     setTimeout(() => {
         playAlertsAudio(alerts);
     }, 500);
-    
-    // Add event listeners for audio controls
+
     document.getElementById('playAlertsAudio').addEventListener('click', () => playAlertsAudio(alerts));
     document.getElementById('stopAlertsAudio').addEventListener('click', stopAlertsAudio);
 }
 
 function playAlertsAudio(alerts) {
     stopAlertsAudio();
-    
+
     let message = `Water crisis alerts summary. ${alerts.length} districts require attention. `;
-    
+
     alerts.forEach((alert, index) => {
         message += `${alert.district}: ${alert.severity} severity, ${alert.days_to_crisis} days to crisis. `;
     });
-    
+
     message += 'Please review detailed information and take appropriate action.';
-    
+
     if ('speechSynthesis' in window) {
         currentAudio = new SpeechSynthesisUtterance(message);
         currentAudio.rate = 0.9;
         currentAudio.pitch = 1;
         currentAudio.volume = 0.8;
-        
+
         currentAudio.onstart = () => {
             document.getElementById('playAlertsAudio').style.display = 'none';
             document.getElementById('stopAlertsAudio').style.display = 'inline-block';
         };
-        
+
         currentAudio.onend = () => {
             document.getElementById('playAlertsAudio').style.display = 'inline-block';
             document.getElementById('stopAlertsAudio').style.display = 'none';
         };
-        
+
         speechSynthesis.speak(currentAudio);
     }
 }

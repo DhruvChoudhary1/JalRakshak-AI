@@ -137,28 +137,29 @@
                 </div>
                 
                 <!-- Crisis Predictor Panel -->
-                <div id="crisisPanel" class="crisis-panel" style="display: none;">
-                    <div class="crisis-header">
-                        <h3>🔮 AI Water Crisis Predictor</h3>
-                        <button id="closeCrisis">×</button>
-                    </div>
-                    <div class="crisis-content">
-                        <div class="crisis-controls">
-                            <select id="crisisDistrict">
-                                <option value="">Select District</option>
-                                <option value="Mumbai">Mumbai</option>
-                                <option value="Pune">Pune</option>
-                                <option value="Bangalore">Bangalore</option>
-                                <option value="Chennai">Chennai</option>
-                                <option value="Delhi">Delhi</option>
-                            </select>
-                            <button id="predictBtn">Predict Crisis</button>
-                            <button id="alertsBtn">View All Alerts</button>
-                        </div>
-                        <div id="crisisResults" class="crisis-results"></div>
-                    </div>
-                </div>
-                </div>
+<div id="crisisPanel" class="crisis-panel" style="display: none;">
+    <div class="crisis-header">
+        <h3>🔮 AI Water Crisis Predictor</h3>
+        <button id="closeCrisis">×</button>
+    </div>
+    <div class="crisis-content">
+        <div class="crisis-controls">
+            <!-- For state-wise prediction, use state names as options -->
+            <select id="crisisDistrict">
+                <option value="">Select State</option>
+                <option value="RAJASTHAN">Rajasthan</option>
+                <option value="MAHARASHTRA">Maharashtra</option>
+                <option value="DELHI">Delhi</option>
+                <option value="KARNATAKA">Karnataka</option>
+                <option value="TAMILNADU">Tamil Nadu</option>
+                <!-- Add more states as needed, matching your CSV -->
+            </select>
+            <button id="predictBtn">Predict Crisis</button>
+            <button id="alertsBtn">View All Alerts</button>
+        </div>
+        <div id="crisisResults" class="crisis-results"></div>
+    </div>
+</div>
 
                 <!-- Interactive Map Panel -->
                 <div id="mapPanel" class="feature-panel" style="display: none;">
