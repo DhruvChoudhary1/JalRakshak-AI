@@ -1,11 +1,38 @@
 import pandas as pd
 from datetime import datetime, timedelta
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+import numpy as np
 
 class WaterCrisisPredictor:
-    """Predicts water crisis using groundwater CSV data"""
+    """ML-powered water crisis prediction using groundwater CSV data"""
 
     def __init__(self, state_csv='./static/data/state_groundwater.csv'):
         self.state_csv = state_csv
+        self.model = None
+        self.scaler = None
+        self.label_encoder = None
+        self._train_model()
+
+    def _train_model(self):
+        # Load CSV and create mock labels for demonstration
+        df = pd.read_csv(self.state_csv)
+        df['State'] = df['State'].astype(str).str.strip().str.upper()
+        df['Rainfall'] = df['Rainfall (mm)'].replace(',', '', regex=True).astype(float)
+        df['Resource'] = df['Annual Extractable Ground Water Resources (ham)'].replace(',', '', regex=True).astype(float)
+        df['Extraction'] = df['Ground Water Extraction (ham)'].replace(',', '', regex=True).astype(float)
+        # Create mock labels: If extraction > resource => 'Critical', else 'Safe'
+        df['Severity'] = np.where(df['Extraction'] > df['Resource'], 'Critical',
+                          np.where(df['Extraction'] > 0.8 * df['Resource'], 'High',
+                          np.where(df['Extraction'] > 0.6 * df['Resource'], 'Moderate', 'Low')))
+        features = df[['Rainfall', 'Resource', 'Extraction']]
+        labels = df['Severity']
+        self.scaler = StandardScaler()
+        X = self.scaler.fit_transform(features)
+        self.label_encoder = LabelEncoder()
+        y = self.label_encoder.fit_transform(labels)
+        self.model = LogisticRegression()
+        self.model.fit(X, y)
 
     def predict_state_crisis(self, state):
         df = pd.read_csv(self.state_csv)
@@ -14,11 +41,9 @@ class WaterCrisisPredictor:
         row = df[df['State'] == state]
         if row.empty:
             return {"error": "State not found in groundwater data."}
-
         rainfall = float(str(row['Rainfall (mm)'].values[0]).replace(',', ''))
         resource = float(str(row['Annual Extractable Ground Water Resources (ham)'].values[0]).replace(',', ''))
         extraction = float(str(row['Ground Water Extraction (ham)'].values[0]).replace(',', ''))
-
         return self._predict_crisis(state, rainfall, resource, extraction, level_type="state")
 
     def predict_city_crisis(self, state, city):
@@ -29,32 +54,28 @@ class WaterCrisisPredictor:
         row = df[df['City'] == city]
         if row.empty:
             return {"error": "City not found in groundwater data."}
-
         rainfall = float(str(row['Rainfall (mm)'].values[0]).replace(',', ''))
         resource = float(str(row['Annual Extractable Ground Water Resources (ham)'].values[0]).replace(',', ''))
         extraction = float(str(row['Ground Water Extraction (ham)'].values[0]).replace(',', ''))
-
         return self._predict_crisis(city, rainfall, resource, extraction, level_type="city")
 
     def _predict_crisis(self, location, rainfall, resource, extraction, level_type="state"):
-        # Simple logic: If extraction > resource, crisis is likely
+        # ML prediction
+        X = self.scaler.transform([[rainfall, resource, extraction]])
+        pred = self.model.predict(X)
+        severity = self.label_encoder.inverse_transform(pred)[0]
         ratio = extraction / resource if resource > 0 else 0
-        if ratio > 1.0:
-            severity = 'Critical'
+        # Map severity to days_to_crisis
+        if severity == 'Critical':
             days_to_crisis = 15
-        elif ratio > 0.8:
-            severity = 'High'
+        elif severity == 'High':
             days_to_crisis = 30
-        elif ratio > 0.6:
-            severity = 'Moderate'
+        elif severity == 'Moderate':
             days_to_crisis = 45
         else:
-            severity = 'Low'
             days_to_crisis = 60
-
         crisis_date = datetime.now() + timedelta(days=days_to_crisis)
         recommendations = self._generate_recommendations(severity, days_to_crisis)
-
         return {
             'location': location,
             'level_type': level_type,
@@ -67,7 +88,7 @@ class WaterCrisisPredictor:
             'crisis_date': crisis_date.strftime('%Y-%m-%d'),
             'recommendations': recommendations,
             'last_updated': datetime.now().isoformat(),
-            'data_sources': ['INGRES Groundwater CSV']
+            'data_sources': ['INGRES Groundwater CSV', 'ML Model']
         }
 
     def _generate_recommendations(self, severity, days):

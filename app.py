@@ -5,6 +5,13 @@ import threading
 import time
 import os
 import spacy
+from selenium import webdriver
+
+from dotenv import load_dotenv 
+
+load_dotenv()
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+
 
 from ingres import update_state_groundwater_csv, scrape_city_groundwater_csv
 from features.crisis_predictor import crisis_predictor
@@ -66,7 +73,7 @@ threading.Thread(target=background_csv_updater, daemon=True).start()
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', GOOGLE_MAPS_API_KEY=GOOGLE_MAPS_API_KEY) 
 
 @app.route('/api/groundwater', methods=['POST'])
 def groundwater_info():
